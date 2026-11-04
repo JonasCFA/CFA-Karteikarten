@@ -1,0 +1,1437 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101c2e">
+  <title>CFA Cards — Study</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17243a;
+      --muted: #758198;
+      --line: #e4e9f0;
+      --paper: #ffffff;
+      --bg: #f4f6fa;
+      --nav: #101c2e;
+      --accent: #4376f6;
+      --accent-2: #eaf0ff;
+      --danger: #c75e5e;
+      --shadow: 0 18px 55px rgba(30, 45, 69, 0.08);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+    }
+    button, input, select, textarea {
+      font: inherit;
+    }
+    button { cursor: pointer; }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 245px 1fr;
+    }
+    .sidebar {
+      background: var(--nav);
+      color: #eaf0fb;
+      padding: 28px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 8px;
+    }
+    .brand-icon {
+      width: 37px;
+      height: 37px;
+      border-radius: 12px;
+      background: #4175f5;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .brand-text strong {
+      display: block;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+    }
+    .brand-text small {
+      color: #95a3ba;
+    }
+    .nav-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: #8190a8;
+      padding: 0 12px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .nav {
+      display: grid;
+      gap: 5px;
+    }
+    .nav button {
+      border: 0;
+      background: transparent;
+      color: #aab6c9;
+      text-align: left;
+      padding: 11px 12px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.15s ease;
+    }
+    .nav button:hover,
+    .nav button.active {
+      background: rgba(255,255,255,0.08);
+      color: white;
+    }
+    .nav .icon {
+      width: 20px;
+      text-align: center;
+      font-size: 15px;
+    }
+    .side-bottom {
+      margin-top: auto;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 10px 0;
+      color: #aab6c9;
+      font-size: 12px;
+    }
+    .main {
+      min-width: 0;
+    }
+    .topbar {
+      height: 74px;
+      padding: 0 38px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(10px);
+    }
+    .crumb {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .crumb strong {
+      color: var(--ink);
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: #e8edfa;
+      color: #4462a0;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+    .content {
+      max-width: 1120px;
+      padding: 36px 38px 70px;
+      margin: 0 auto;
+    }
+    .heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 26px;
+    }
+    .heading h1 {
+      margin: 0 0 7px;
+      font-size: 27px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+    }
+    .heading p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 9px;
+      padding: 9px 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+    .btn:hover {
+      border-color: #b9c5d7;
+      transform: translateY(-1px);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn.primary:hover {
+      background: #315fe0;
+    }
+    .btn.subtle {
+      background: var(--accent-2);
+      border-color: var(--accent-2);
+      color: #325bc7;
+    }
+    .btn.danger {
+      color: var(--danger);
+    }
+    .btn.small {
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 25px;
+    }
+    .stat, .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      box-shadow: var(--shadow);
+    }
+    .stat {
+      padding: 17px 19px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .stat-value {
+      font-size: 25px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-top: 3px;
+    }
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #f0f3f9;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+    .study-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 270px;
+      gap: 18px;
+    }
+    .study-panel {
+      padding: 22px;
+    }
+    .study-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 17px;
+    }
+    .study-head h2,
+    .panel h2,
+    .section-bar h2 {
+      font-size: 15px;
+      margin: 0;
+    }
+    .counter {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .flashcard {
+      min-height: 315px;
+      border: 1px solid #e6eaf1;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #fff, #fbfcff);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.35s ease, background 0.2s ease;
+    }
+    .flashcard:focus-visible {
+      outline: 3px solid #8eacff;
+      outline-offset: 2px;
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      padding: 18px 20px 0;
+    }
+    .topic-chip {
+      background: #eef2ff;
+      color: #455fba;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .card-state {
+      font-size: 11px;
+      color: #99a3b4;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .card-content {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 30px 50px;
+      text-align: center;
+      font-size: 21px;
+      line-height: 1.5;
+      font-weight: 600;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .card-content.back {
+      font-size: 17px;
+      font-weight: 500;
+    }
+    .tap-hint {
+      position: absolute;
+      bottom: 15px;
+      width: 100%;
+      text-align: center;
+      color: #98a3b4;
+      font-size: 11px;
+    }
+    .study-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .control-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .progress {
+      height: 4px;
+      background: #edf0f5;
+      border-radius: 9px;
+      margin-top: 18px;
+      overflow: hidden;
+    }
+    .progress span {
+      height: 100%;
+      display: block;
+      background: var(--accent);
+      transition: width 0.2s ease;
+    }
+    .side-panel {
+      padding: 19px;
+      height: max-content;
+    }
+    .select-wrap {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .select-wrap label, .field label {
+      font-size: 12px;
+      font-weight: 650;
+      color: #5a6679;
+    }
+    .select-wrap select, .field input, .field select, .field textarea, .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: var(--ink);
+      outline: none;
+    }
+    .select-wrap select:focus, .field input:focus, .field textarea:focus, .search:focus {
+      border-color: #86a4ff;
+      box-shadow: 0 0 0 3px rgba(67, 118, 246, 0.15);
+    }
+    .topic-list {
+      display: grid;
+      gap: 3px;
+    }
+    .topic-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      border: 0;
+      background: transparent;
+      padding: 9px 7px;
+      border-radius: 7px;
+      color: #536075;
+      text-align: left;
+      font-size: 13px;
+    }
+    .topic-row:hover, .topic-row.selected {
+      background: #f2f5fb;
+      color: var(--ink);
+    }
+    .topic-count {
+      color: #929db0;
+    }
+    .section-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 12px;
+    }
+    .section-tools {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+    }
+    .search {
+      width: 205px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+    .deck {
+      display: grid;
+      gap: 9px;
+    }
+    .deck-item {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .deck-item h3 {
+      margin: 0 0 5px;
+      font-size: 13px;
+    }
+    .deck-item p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+    }
+    .deck-meta {
+      display: flex;
+      gap: 7px;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #f1f3f7;
+      color: #69758a;
+    }
+    .pill.archived {
+      background: #fef0e9;
+      color: #b86533;
+    }
+    .item-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .empty {
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed #d6deea;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 27, 43, 0.72);
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      z-index: 5;
+    }
+    .modal {
+      width: min(590px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 25px 90px rgba(16, 28, 46, 0.52);
+    }
+    .modal-head {
+      padding: 19px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-head h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+    .close {
+      border: 0;
+      background: none;
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+    }
+    .modal-body {
+      padding: 20px 22px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .field {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .field.full {
+      grid-column: 1 / -1;
+    }
+    .field textarea {
+      min-height: 105px;
+      resize: vertical;
+    }
+    .form-help {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: -6px;
+    }
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .pdf-instructions {
+      background: #f4f7fc;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: #536075;
+      margin: 0 0 15px;
+    }
+    .import-preview {
+      max-height: 240px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .preview-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+    }
+    .preview-row:last-child {
+      border-bottom: 0;
+    }
+    .preview-row span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .notice {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background: #17243a;
+      color: #fff;
+      padding: 11px 15px;
+      border-radius: 9px;
+      box-shadow: var(--shadow);
+      z-index: 9;
+      font-size: 13px;
+    }
+    .kbd {
+      font-size: 10px;
+      color: #8792a4;
+      background: #f5f6f9;
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+    .footer-note {
+      margin-top: 16px;
+      color: #929db0;
+      font-size: 11px;
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 72px 1fr; }
+      .sidebar { padding: 22px 10px; align-items: center; }
+      .brand { padding: 0; }
+      .brand-text, .nav-label, .nav button span:not(.icon), .side-bottom { display: none; }
+      .nav { width: 100%; }
+      .nav button { justify-content: center; padding: 12px 4px; }
+      .nav .icon { font-size: 18px; }
+      .study-layout { grid-template-columns: 1fr; }
+      .side-panel { display: none; }
+      .topbar { padding: 0 22px; }
+      .content { padding: 28px 22px 55px; }
+    }
+    @media (max-width: 600px) {
+      .app { display: block; }
+      .sidebar {
+        height: 61px;
+        position: fixed;
+        z-index: 4;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        flex-direction: row;
+        justify-content: center;
+        padding: 7px 10px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+      }
+      .brand, .nav-label, .side-bottom { display: none; }
+      .nav { display: flex; justify-content: space-around; gap: 0; }
+      .nav button { padding: 8px 12px; }
+      .nav button span:not(.icon) { display: none; }
+      .topbar { height: 58px; padding: 0 16px; }
+      .content { padding: 24px 14px 86px; }
+      .heading { display: block; }
+      .heading h1 { font-size: 24px; }
+      .actions { margin-top: 15px; }
+      .stats { gap: 7px; }
+      .stat { padding: 12px 10px; }
+      .stat-label { font-size: 10px; }
+      .stat-value { font-size: 20px; }
+      .stat-icon { display: none; }
+      .study-panel { padding: 15px; }
+      .flashcard { min-height: 295px; }
+      .card-content { font-size: 18px; padding: 26px 20px; }
+      .card-content.back { font-size: 16px; }
+      .study-controls { align-items: flex-start; flex-direction: column; }
+      .control-group { width: 100%; justify-content: space-between; }
+      .section-bar { align-items: flex-start; }
+      .section-tools { flex-direction: column; }
+      .search { width: 100%; }
+      .deck-item { grid-template-columns: 1fr; }
+      .item-actions { justify-content: flex-end; }
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">▣</div>
+      <div class="brand-text">
+        <strong>CFA Cards</strong>
+        <small>Personal study deck</small>
+      </div>
+    </div>
+    <div>
+      <div class="nav-label">Workspace</div>
+      <nav class="nav" aria-label="Main navigation">
+        <button class="active" data-view="study"><span class="icon">▣</span><span>Study</span></button>
+        <button data-view="deck"><span class="icon">▤</span><span>All cards</span></button>
+        <button data-view="archived"><span class="icon">▣</span><span>Archived</span></button>
+      </nav>
+    </div>
+    <div class="side-bottom">Saved in this browser.</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="crumb">Workspace / <strong id="crumbTitle">Study</strong></div>
+      <div class="top-actions">
+        <button class="btn small" id="topAdd">＋ Add card</button>
+        <div class="profile" title="Local deck">C</div>
+      </div>
+    </header>
+
+    <div class="content">
+      <section id="studyView">
+        <div class="heading">
+          <div>
+            <h1>Good to see you</h1>
+            <p>One card at a time. Think it through, then flip to check.</p>
+          </div>
+          <div class="actions">
+            <button class="btn" id="importOpen">⇧ Import PDFs</button>
+            <button class="btn primary" id="addOpen">＋ New flashcard</button>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div>
+              <div class="stat-label">Active cards</div>
+              <div class="stat-value" id="activeCount">0</div>
+            </div>
+            <div class="stat-icon">▤</div>
+          </div>
+          <div class="stat">
+            <div>
+              <div class="stat-label">Topics</div>
+              <div class="stat-value" id="topicCount">0</div>
+            </div>
+            <div class="stat-icon">◈</div>
+          </div>
+          <div class="stat">
+            <div>
+              <div class="stat-label">Archived</div>
+              <div class="stat-value" id="archivedCount">0</div>
+            </div>
+            <div class="stat-icon">▣</div>
+          </div>
+        </div>
+
+        <div class="study-layout">
+          <section class="panel study-panel">
+            <div class="study-head">
+              <h2>Study session</h2>
+              <span class="counter" id="counter">No cards</span>
+            </div>
+
+            <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Flashcard. Press space or enter to reveal answer">
+              <div class="card-top">
+                <span class="topic-chip" id="cardTopic">No topic</span>
+                <span class="card-state" id="cardState">QUESTION</span>
+              </div>
+              <div class="card-content" id="cardContent">Add a flashcard or import a PDF deck to begin.</div>
+              <div class="tap-hint" id="tapHint">Click or press <span class="kbd">Space</span> to reveal</div>
+            </div>
+
+            <div class="study-controls">
+              <div class="control-group">
+                <button class="btn" id="prevCard">← Previous</button>
+                <button class="btn" id="flipCard">Show answer</button>
+                <button class="btn" id="nextCard">Next →</button>
+              </div>
+              <button class="btn small subtle" id="shuffle">⤨ Shuffle</button>
+            </div>
+
+            <div class="progress"><span id="progressFill" style="width:0"></span></div>
+            <div class="footer-note">Keyboard: <span class="kbd">Space</span> reveal · <span class="kbd">←</span> previous · <span class="kbd">→</span> next</div>
+          </section>
+
+          <aside class="panel side-panel">
+            <h2>Study by topic</h2>
+            <div class="select-wrap">
+              <label for="topicSelect">Current topic</label>
+              <select id="topicSelect">
+                <option value="all">All topics</option>
+              </select>
+            </div>
+            <div class="topic-list" id="topicList"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="deckView" class="hidden">
+        <div class="heading">
+          <div>
+            <h1>All flashcards</h1>
+            <p>Browse, edit, or archive cards in your active deck.</p>
+          </div>
+          <div class="actions">
+            <button class="btn" id="deckImport">⇧ Import PDFs</button>
+            <button class="btn primary" id="deckAdd">＋ New flashcard</button>
+          </div>
+        </div>
+        <div class="section-bar">
+          <h2 id="deckTitle">Active cards</h2>
+          <div class="section-tools">
+            <input id="deckSearch" class="search" placeholder="Search cards…" aria-label="Search cards">
+            <select id="deckTopicSelect" class="search" aria-label="Filter by topic">
+              <option value="all">All topics</option>
+            </select>
+          </div>
+        </div>
+        <div class="deck" id="deckList"></div>
+      </section>
+
+      <section id="archivedView" class="hidden">
+        <div class="heading">
+          <div>
+            <h1>Archived cards</h1>
+            <p>Archived cards are kept safely and can be restored whenever you need them.</p>
+          </div>
+          <div class="actions">
+            <button class="btn" id="archImport">⇧ Import PDFs</button>
+          </div>
+        </div>
+        <div class="section-bar">
+          <h2>Archived cards</h2>
+          <div class="section-tools">
+            <input id="archSearch" class="search" placeholder="Search archived cards…" aria-label="Search archived cards">
+          </div>
+        </div>
+        <div class="deck" id="archList"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast hidden" role="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'cfa-flashcards-v1';
+  let cards = loadCards();
+  let view = 'study';
+  let session = [];
+  let sessionIndex = 0;
+  let revealed = false;
+  let topic = 'all';
+  let toastTimer;
+
+  const $ = (id) => document.getElementById(id);
+
+  function loadCards() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      return Array.isArray(raw)
+        ? raw.filter((c) => c && typeof c.front === 'string' && typeof c.back === 'string').map((c) => ({ ...c, archived: !!c.archived }))
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    render();
+  }
+
+  function toast(message) {
+    const el = $('toast');
+    el.textContent = message;
+    el.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.add('hidden'), 2600);
+  }
+
+  function activeCards() {
+    return cards.filter((card) => !card.archived && (topic === 'all' || card.topic === topic));
+  }
+
+  function distinctTopics() {
+    return [...new Set(cards.map((c) => c.topic).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  }
+
+  function resetSession() {
+    const active = activeCards();
+    session = active.map((card) => card.id);
+    sessionIndex = 0;
+    revealed = false;
+    renderStudy();
+  }
+
+  function currentCard() {
+    if (!session.length) return null;
+    const active = activeCards();
+    const targetId = session[sessionIndex];
+    return active.find((card) => card.id === targetId) || null;
+  }
+
+  function renderStats() {
+    const topics = distinctTopics();
+    $('activeCount').textContent = cards.filter((card) => !card.archived).length;
+    $('topicCount').textContent = topics.length;
+    $('archivedCount').textContent = cards.filter((card) => card.archived).length;
+
+    const topicList = topics.length
+      ? topics.map((t) => {
+          const activeForTopic = cards.filter((card) => !card.archived && card.topic === t).length;
+          return `<button class="topic-row ${topic === t ? 'selected' : ''}" data-topic="${escapeHtml(t)}"><span>${escapeHtml(t)}</span><span class="topic-count">${activeForTopic}</span></button>`;
+        }).join('')
+      : '<div class="muted">Topics appear here when you add cards.</div>';
+
+    $('topicList').innerHTML = topicList;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[char]));
+  }
+
+  function renderStudy() {
+    const validSession = session.filter((id) => activeCards().some((card) => card.id === id));
+    if (validSession.length !== session.length) {
+      session = validSession;
+    }
+    if (!session.length) {
+      sessionIndex = 0;
+      $('counter').textContent = 'No cards';
+      $('cardTopic').textContent = 'No topic';
+      $('cardState').textContent = 'QUESTION';
+      $('cardContent').textContent = 'Add a flashcard or import a PDF deck to begin.';
+      $('cardContent').classList.remove('back');
+      $('tapHint').innerHTML = 'Click or press <span class="kbd">Space</span> to reveal';
+      $('flipCard').disabled = true;
+      $('prevCard').disabled = true;
+      $('nextCard').disabled = true;
+      $('progressFill').style.width = '0%';
+      return;
+    }
+
+    if (sessionIndex >= session.length) sessionIndex = 0;
+
+    const card = currentCard();
+    const total = session.length;
+    $('counter').textContent = card ? `${sessionIndex + 1} of ${total}` : 'No cards';
+    $('cardTopic').textContent = card?.topic || 'No topic';
+    $('cardState').textContent = card ? (revealed ? 'ANSWER' : 'QUESTION') : 'READY';
+    $('cardContent').textContent = card ? (revealed ? card.back : card.front) : 'Add a flashcard or import a PDF deck to begin.';
+    $('cardContent').classList.toggle('back', !!(card && revealed));
+    $('tapHint').innerHTML = card
+      ? (revealed ? 'Click or press <span class="kbd">Space</span> to see question' : 'Click or press <span class="kbd">Space</span> to reveal')
+      : 'Choose a topic or add a card';
+    $('flipCard').textContent = card ? (revealed ? 'Show question' : 'Show answer') : 'Show answer';
+    $('flipCard').disabled = !card;
+    $('prevCard').disabled = total < 2;
+    $('nextCard').disabled = total < 2;
+    $('progressFill').style.width = total ? `${((sessionIndex + 1) / total) * 100}%` : '0%';
+  }
+
+  function renderDeck(archived = false) {
+    const listEl = archived ? $('archList') : $('deckList');
+    const searchEl = archived ? $('archSearch') : $('deckSearch');
+    const topicEl = archived ? null : $('deckTopicSelect');
+    const selectedTopic = archived ? 'all' : (topicEl.value || 'all');
+    const query = (searchEl.value || '').trim().toLowerCase();
+
+    const matches = cards.filter((card) => {
+      const inArchivedState = card.archived === archived;
+      const topicMatches = selectedTopic === 'all' || card.topic === selectedTopic;
+      const searchMatches = !query || [card.front, card.back, card.topic].some((value) => (value || '').toLowerCase().includes(query));
+      return inArchivedState && topicMatches && searchMatches;
+    });
+
+    if (!archived) {
+      $('deckTitle').textContent = selectedTopic === 'all' ? 'Active cards' : `${selectedTopic} cards`;
+    }
+
+    if (!matches.length) {
+      listEl.innerHTML = `<div class="empty">${archived ? 'No archived cards yet. Archive cards to keep them out of your active deck.' : 'No cards found. Add one or import a PDF to get started.'}</div>`;
+      return;
+    }
+
+    listEl.innerHTML = matches.map((card) => `
+      <article class="deck-item">
+        <div>
+          <h3>${escapeHtml(card.front)}</h3>
+          <p>${escapeHtml(card.back)}</p>
+          <div class="deck-meta">
+            <span class="topic-chip">${escapeHtml(card.topic)}</span>
+            <span class="pill ${card.archived ? 'archived' : ''}">${card.archived ? 'Archived' : 'Active'}</span>
+          </div>
+        </div>
+        <div class="item-actions">
+          ${card.archived ? `<button class="btn small" data-action="restore" data-id="${card.id}">↶ Restore</button>` : `
+            <button class="btn small" data-action="edit" data-id="${card.id}">Edit</button>
+            <button class="btn small danger" data-action="archive" data-id="${card.id}">Archive</button>
+          `}
+        </div>
+      </article>
+    `).join('');
+  }
+
+  function updateTopicOptions() {
+    const options = ['<option value="all">All topics</option>', ...distinctTopics().map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`)].join('');
+    const topicSelect = $('topicSelect');
+    const deckTopicSelect = $('deckTopicSelect');
+    const previousTopic = topicSelect.value;
+    topicSelect.innerHTML = options;
+    deckTopicSelect.innerHTML = options;
+    if (distinctTopics().includes(previousTopic)) {
+      topicSelect.value = previousTopic;
+      deckTopicSelect.value = previousTopic;
+    } else {
+      topicSelect.value = 'all';
+      deckTopicSelect.value = 'all';
+    }
+  }
+
+  function render() {
+    updateTopicOptions();
+    renderStats();
+    renderStudy();
+    renderDeck(false);
+    renderDeck(true);
+  }
+
+  function setView(nextView) {
+    view = nextView;
+    for (const viewName of ['study', 'deck', 'archived']) {
+      const section = $(viewName + 'View');
+      if (section) section.classList.toggle('hidden', viewName !== nextView);
+      const navButton = document.querySelector(`[data-view="${viewName}"]`);
+      if (navButton) navButton.classList.toggle('active', viewName === nextView);
+    }
+    $('crumbTitle').textContent = nextView === 'deck' ? 'All cards' : nextView === 'archived' ? 'Archived' : 'Study';
+  }
+
+  function closeModal() {
+    $('modalRoot').innerHTML = '';
+  }
+
+  function openModal(title, body, footer = '') {
+    $('modalRoot').innerHTML = `
+      <div class="modal-backdrop" id="backdrop">
+        <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <header class="modal-head">
+            <h2 id="modalTitle">${title}</h2>
+            <button class="close" id="modalClose" aria-label="Close">×</button>
+          </header>
+          <div class="modal-body">${body}</div>
+          ${footer ? `<footer class="modal-footer">${footer}</footer>` : ''}
+        </section>
+      </div>
+    `;
+    $('modalClose').onclick = closeModal;
+    $('backdrop').addEventListener('click', (event) => {
+      if (event.target.id === 'backdrop') closeModal();
+    });
+    document.addEventListener('keydown', escapeHandler, { once: true });
+  }
+
+  function escapeHandler(event) {
+    if (event.key === 'Escape') closeModal();
+  }
+
+  function openCardForm(card = null) {
+    const isEdit = !!card;
+    const body = `
+      <form id="cardForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="cardTopicInput">Topic</label>
+            <input id="cardTopicInput" list="topicSuggestions" required maxlength="60" value="${escapeHtml(card?.topic || '')}" placeholder="e.g. Fixed Income">
+            <datalist id="topicSuggestions">${distinctTopics().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
+          </div>
+
+          <div class="field">
+            <label for="cardSource">Source <span class="muted">(optional)</span></label>
+            <input id="cardSource" maxlength="120" value="${escapeHtml(card?.source || '')}" placeholder="PDF or note">
+          </div>
+
+          <div class="field full">
+            <label for="cardFront">Front / question</label>
+            <textarea id="cardFront" required maxlength="5000" placeholder="Write the prompt…">${escapeHtml(card?.front || '')}</textarea>
+          </div>
+
+          <div class="field full">
+            <label for="cardBack">Back / answer</label>
+            <textarea id="cardBack" required maxlength="10000" placeholder="Write the answer…">${escapeHtml(card?.back || '')}</textarea>
+          </div>
+        </div>
+      </form>
+    `;
+
+    openModal(isEdit ? 'Edit flashcard' : 'New flashcard', body, `
+      <button class="btn" id="cancelForm">Cancel</button>
+      <button class="btn primary" id="saveForm">${isEdit ? 'Save changes' : 'Add flashcard'}</button>
+    `);
+
+    $('cancelForm').onclick = closeModal;
+    $('saveForm').onclick = () => {
+      const front = $('cardFront').value.trim();
+      const back = $('cardBack').value.trim();
+      const topicName = $('cardTopicInput').value.trim();
+      const source = $('cardSource').value.trim();
+
+      if (!front || !back || !topicName) {
+        toast('Topic, front, and back are required.');
+        return;
+      }
+
+      if (isEdit) {
+        card.front = front;
+        card.back = back;
+        card.topic = topicName;
+        card.source = source;
+      } else {
+        cards.push({
+          id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          front,
+          back,
+          topic: topicName,
+          source,
+          archived: false,
+          createdAt: new Date().toISOString()
+        });
+      }
+
+      closeModal();
+      save();
+      toast(isEdit ? 'Card updated.' : 'Card added to your deck.');
+    };
+
+    $('cardForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      $('saveForm').click();
+    });
+  }
+
+  function assignTextToGrid(items, width, height, cols, rows) {
+    const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => []));
+    const textEntries = items
+      .filter((item) => item && item.str && item.str.trim())
+      .map((item) => ({
+        x: item.transform ? item.transform[4] : 0,
+        y: item.transform ? item.transform[5] : 0,
+        text: item.str
+      }))
+      .sort((a, b) => b.y - a.y || a.x - b.x);
+
+    for (const entry of textEntries) {
+      const column = Math.min(cols - 1, Math.max(0, Math.floor((entry.x / width) * cols)));
+      const row = Math.min(rows - 1, Math.max(0, Math.floor((height - entry.y) / height * rows)));
+      grid[row][column].push(entry);
+    }
+
+    return grid.map((row) => row.map((cell) => {
+      const combined = cell.sort((a, b) => b.y - a.y || a.x - b.x).map((entry) => entry.text).join(' ');
+      return combined.replace(/\s+/g, ' ').trim();
+    }));
+  }
+
+  function openImport() {
+    if (!window.pdfjsLib) {
+      toast('PDF import could not load. Check your connection and refresh.');
+      return;
+    }
+
+    const body = `
+      <div class="pdf-instructions">
+        <strong>Front/back pairing rule:</strong> put page 1 top-left card with page 2 top-right card, keeping rows aligned. Each row is treated as a card pair, and the left/right columns are mirrored across the two pages.
+      </div>
+
+      <div class="field">
+        <label for="pdfTopic">Topic for this PDF</label>
+        <input id="pdfTopic" list="pdfTopics" placeholder="e.g. Fixed Income" value="">
+        <datalist id="pdfTopics">${distinctTopics().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
+      </div>
+
+      <div class="field">
+        <label for="pdfFile">Select a flashcard PDF</label>
+        <input id="pdfFile" type="file" accept="application/pdf,.pdf">
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="gridCols">Columns per page</label>
+          <input id="gridCols" type="number" min="1" max="6" value="2">
+        </div>
+        <div class="field">
+          <label for="gridRows">Rows per page</label>
+          <input id="gridRows" type="number" min="1" max="12" value="4">
+        </div>
+      </div>
+
+      <div class="form-help">Choose the exact printed grid of the PDF. The importer matches row-by-row and mirrors the back page.</div>
+      <div class="notice" id="importStatus">PDF text is extracted in your browser and is not uploaded.</div>
+      <div class="import-preview hidden" id="importPreview"></div>
+    `;
+
+    openModal('Import flashcards from PDF', body, `
+      <button class="btn" id="cancelImport">Cancel</button>
+      <button class="btn primary" id="parsePdf">Read PDF</button>
+      <button class="btn primary hidden" id="saveImported">Add reviewed cards</button>
+    `);
+
+    $('cancelImport').onclick = closeModal;
+    $('parsePdf').onclick = async () => {
+      const file = $('pdfFile').files[0];
+      const topicName = $('pdfTopic').value.trim();
+      const cols = Number($('gridCols').value);
+      const rows = Number($('gridRows').value);
+
+      if (!file || !topicName) {
+        toast('Choose a PDF and enter its topic.');
+        return;
+      }
+      if (!cols || !rows || cols * rows > 48) {
+        toast('Use a valid page grid (up to 48 cards per page).');
+        return;
+      }
+
+      const status = $('importStatus');
+      const button = $('parsePdf');
+      button.disabled = true;
+      status.textContent = 'Reading PDF text…';
+
+      try {
+        const pdfLib = window.pdfjsLib;
+        pdfLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const fileBytes = new Uint8Array(await file.arrayBuffer());
+        const pdf = await pdfLib.getDocument({ data: fileBytes }).promise;
+
+        if (pdf.numPages % 2 !== 0) {
+          throw new Error(`This PDF has ${pdf.numPages} pages. Front/back pages must come in pairs.`);
+        }
+
+        const pageGrids = [];
+        for (let pageIndex = 1; pageIndex <= pdf.numPages; pageIndex += 1) {
+          status.textContent = `Reading page ${pageIndex} of ${pdf.numPages}…`;
+          const page = await pdf.getPage(pageIndex);
+          const text = await page.getTextContent();
+          const viewport = page.getViewport({ scale: 1 });
+          pageGrids.push(assignTextToGrid(text.items, viewport.width, viewport.height, cols, rows));
+        }
+
+        const draft = [];
+        for (let i = 0; i < pageGrids.length; i += 2) {
+          const frontGrid = pageGrids[i];
+          const backGrid = pageGrids[i + 1];
+
+          for (let row = 0; row < rows; row += 1) {
+            for (let col = 0; col < cols; col += 1) {
+              const frontText = frontGrid[row][col].trim();
+              const mirroredCol = cols - 1 - col;
+              const backText = backGrid[row][mirroredCol].trim();
+
+              if (frontText || backText) {
+                draft.push({
+                  front: frontText || '[Front text missing — edit card]',
+                  back: backText || '[Back text missing — edit card]',
+                  topic: topicName,
+                  source: `${file.name} • pages ${i + 1}–${i + 2}`
+                });
+              }
+            }
+          }
+        }
+
+        if (!draft.length) {
+          throw new Error('No text was found in the configured grid. Try adjusting the rows/columns or use a PDF with selectable text.');
+        }
+
+        window.importDraft = draft;
+        const preview = $('importPreview');
+        preview.innerHTML = draft.slice(0, 10).map((card, index) => `
+          <div class="preview-row">
+            <span><b>${index + 1} · Front:</b> ${escapeHtml(card.front)}</span>
+            <span><b>Back:</b> ${escapeHtml(card.back)}</span>
+          </div>
+        `).join('') + (draft.length > 10 ? `<div class="preview-row"><span>… and ${draft.length - 10} more cards</span></div>` : '');
+        preview.classList.remove('hidden');
+        status.textContent = `Found ${draft.length} paired cards. Review the matching preview; you can still edit them after importing.`;
+        $('saveImported').classList.remove('hidden');
+        button.textContent = 'Read again';
+        button.disabled = false;
+      } catch (error) {
+        status.textContent = error.message || 'Could not read this PDF.';
+        button.disabled = false;
+        toast('Unable to import from this PDF. Check the layout and try again.');
+      }
+    };
+
+    $('saveImported').onclick = () => {
+      const importedCards = window.importDraft || [];
+      importedCards.forEach((card) => {
+        cards.push({
+          id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          front: card.front,
+          back: card.back,
+          topic: card.topic,
+          source: card.source,
+          archived: false,
+          createdAt: new Date().toISOString()
+        });
+      });
+      delete window.importDraft;
+      closeModal();
+      save();
+      toast(`${importedCards.length} cards imported.`);
+      setView('deck');
+    };
+  }
+
+  function handleItemAction(action, id) {
+    const card = cards.find((item) => item.id === id);
+    if (!card) return;
+
+    if (action === 'archive') {
+      card.archived = true;
+      save();
+      toast('Card archived. It remains available in Archived.');
+    }
+    if (action === 'restore') {
+      card.archived = false;
+      save();
+      toast('Card restored to the active deck.');
+    }
+    if (action === 'edit') {
+      openCardForm(card);
+    }
+  }
+
+  document.querySelectorAll('[data-view]').forEach((button) => {
+    button.addEventListener('click', () => setView(button.dataset.view));
+  });
+
+  $('topAdd').onclick = () => openCardForm();
+  $('addOpen').onclick = () => openCardForm();
+  $('deckAdd').onclick = () => openCardForm();
+  $('importOpen').onclick = openImport;
+  $('deckImport').onclick = openImport;
+  $('archImport').onclick = openImport;
+
+  $('topicSelect').onchange = () => {
+    topic = $('topicSelect').value;
+    resetSession();
+  };
+
+  $('topicList').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-topic]');
+    if (!button) return;
+    topic = button.dataset.topic;
+    $('topicSelect').value = topic;
+    resetSession();
+  });
+
+  $('flashcard').addEventListener('click', () => {
+    if (!currentCard()) return;
+    revealed = !revealed;
+    renderStudy();
+  });
+
+  $('flashcard').addEventListener('keydown', (event) => {
+    if (event.key === ' ' || event.key === 'Enter') {
+      event.preventDefault();
+      $('flashcard').click();
+    }
+  });
+
+  $('flipCard').onclick = () => {
+    if (!currentCard()) return;
+    revealed = !revealed;
+    renderStudy();
+  };
+
+  $('nextCard').onclick = () => {
+    const active = activeCards();
+    if (!active.length) return;
+    sessionIndex = (sessionIndex + 1) % active.length;
+    revealed = false;
+    renderStudy();
+  };
+
+  $('prevCard').onclick = () => {
+    const active = activeCards();
+    if (!active.length) return;
+    sessionIndex = (sessionIndex - 1 + active.length) % active.length;
+    revealed = false;
+    renderStudy();
+  };
+
+  $('shuffle').onclick = () => {
+    const active = activeCards();
+    session = active.map((card) => card.id).sort(() => Math.random() - 0.5);
+    sessionIndex = 0;
+    revealed = false;
+    renderStudy();
+  };
+
+  $('deckSearch').addEventListener('input', () => renderDeck(false));
+  $('archSearch').addEventListener('input', () => renderDeck(true));
+  $('deckTopicSelect').addEventListener('change', () => renderDeck(false));
+
+  document.addEventListener('click', (event) => {
+    const actionButton = event.target.closest('[data-action]');
+    if (!actionButton) return;
+    handleItemAction(actionButton.dataset.action, actionButton.dataset.id);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if ($('modalRoot').innerHTML) return;
+    if (view !== 'study') return;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+    if (event.key === 'ArrowRight') $('nextCard').click();
+    if (event.key === 'ArrowLeft') $('prevCard').click();
+    if (event.code === 'Space') {
+      event.preventDefault();
+      $('flipCard').click();
+    }
+  });
+
+  window.addEventListener('storage', () => {
+    cards = loadCards();
+    resetSession();
+    render();
+  });
+
+  render();
+  resetSession();
+})();
+</script>
+</body>
+</html>
