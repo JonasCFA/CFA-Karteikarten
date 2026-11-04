@@ -858,11 +858,13 @@
     }
   }
 
-  function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
-    render();
-  }
-
+ function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  session = activeCards().map((card) => card.id);
+  sessionIndex = 0;
+  revealed = false;
+  render();
+}
   function toast(message) {
     const el = $('toast');
     el.textContent = message;
