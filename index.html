@@ -773,6 +773,7 @@
                 <button class="btn" id="prevCard">← Previous</button>
                 <button class="btn" id="flipCard">Show answer</button>
                 <button class="btn" id="nextCard">Next →</button>
+                <button class="btn success" id="sendToFormula">Send to formula deck</button>
                 <button class="btn danger" id="archiveCurrent">Archive this card</button>
               </div>
               <button class="btn small subtle" id="shuffle">⤨ Shuffle</button>
@@ -949,6 +950,14 @@
     return active.find((card) => card.id === targetId) || null;
   }
 
+  function moveCurrentCardToFormulaDeck() {
+    const card = currentCard();
+    if (!card) return;
+    card.isFormula = true;
+    save();
+    toast('Card moved to the formula deck.');
+  }
+
   function archiveCurrentCard() {
     const card = currentCard();
     if (!card) return;
@@ -1024,6 +1033,7 @@
       $('flipCard').disabled = true;
       $('prevCard').disabled = true;
       $('nextCard').disabled = true;
+      $('sendToFormula').disabled = true;
       $('progressFill').style.width = '0%';
       return;
     }
@@ -1044,6 +1054,7 @@
     $('flipCard').disabled = !card;
     $('prevCard').disabled = total < 2;
     $('nextCard').disabled = total < 2;
+    $('sendToFormula').disabled = !card || card.isFormula;
     $('progressFill').style.width = total ? `${((sessionIndex + 1) / total) * 100}%` : '0%';
   }
 
@@ -1523,6 +1534,10 @@
     if (!currentCard()) return;
     revealed = !revealed;
     renderStudy();
+  };
+
+  $('sendToFormula').onclick = () => {
+    moveCurrentCardToFormulaDeck();
   };
 
   $('archiveCurrent').onclick = archiveCurrentCard;
