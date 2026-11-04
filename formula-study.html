@@ -6,54 +6,53 @@
   <meta name="theme-color" content="#101c2e">
   <title>CFA Cards — Formula study</title>
   <style>
-    :root { color-scheme: light; --ink:#17243a; --muted:#758198; --line:#e4e9f0; --bg:#f4f6fa; --accent:#4376f6; --nav:#101c2e; font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--ink); }
-    button,select { font:inherit; } button { cursor:pointer; }
+    :root { color-scheme:light; --ink:#17243a; --muted:#758198; --line:#e4e9f0; --bg:#f4f6fa; --accent:#4376f6; --success:#2f8f5b; --danger:#c75e5e; font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--ink); } button { font:inherit; cursor:pointer; }
     .topbar { height:68px; padding:0 max(20px,calc((100vw - 1060px)/2)); background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
-    .topbar a { color:var(--ink); text-decoration:none; font-weight:700; }
-    .topbar span { color:var(--muted); font-size:13px; }
-    main { max-width:1060px; margin:auto; padding:38px 22px 70px; }
-    .heading { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:22px; }
+    .topbar a { color:var(--ink); text-decoration:none; font-weight:700; } .topbar span { color:var(--muted); font-size:13px; }
+    main { max-width:1060px; margin:auto; padding:38px 22px 70px; } .heading { margin-bottom:22px; }
     h1 { margin:0 0 6px; font-size:28px; letter-spacing:-.03em; } .heading p { color:var(--muted); margin:0; }
     .layout { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:18px; }
     .panel { background:#fff; border:1px solid var(--line); border-radius:13px; box-shadow:0 18px 55px rgba(30,45,69,.08); padding:22px; }
     .study-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; } .study-head h2, aside h2 { font-size:15px; margin:0; }
-    .counter { color:var(--muted); font-size:12px; }
+    .counter { color:var(--muted); font-size:12px; text-align:right; }
     .flashcard { min-height:330px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(145deg,#fff,#fbfcff); display:flex; flex-direction:column; cursor:pointer; }
+    .flashcard:focus-visible { outline:3px solid #8eacff; outline-offset:2px; }
     .card-top { display:flex; justify-content:space-between; padding:18px 20px 0; }
     .chip { background:#eef2ff; color:#455fba; border-radius:999px; padding:5px 10px; font-size:11px; font-weight:700; }
     .state { color:#99a3b4; font-size:11px; font-weight:700; letter-spacing:.08em; }
     .card-content { flex:1; display:grid; place-items:center; padding:30px 45px; text-align:center; font-size:21px; line-height:1.5; font-weight:600; white-space:pre-wrap; overflow-wrap:anywhere; }
     .card-content.answer { font-size:17px; font-weight:500; }
+    .hint { margin:8px 0 0; color:var(--muted); font-size:12px; text-align:center; }
     .controls { display:flex; flex-wrap:wrap; gap:8px; margin-top:15px; }
-    .btn { border:1px solid var(--line); border-radius:8px; background:white; color:var(--ink); padding:8px 12px; font-size:13px; font-weight:600; }
-    .btn.primary { color:#fff; background:var(--accent); border-color:var(--accent); }
-    .btn:disabled { opacity:.5; cursor:not-allowed; }
-    .progress { height:4px; background:#edf0f5; border-radius:9px; overflow:hidden; margin-top:18px; }
-    .progress span { display:block; height:100%; background:var(--accent); transition:width .2s; }
-    aside { height:max-content; } aside h2 { margin-bottom:13px; }
-    #topicList { display:grid; gap:3px; }
+    .btn { border:1px solid var(--line); border-radius:8px; background:white; color:var(--ink); padding:9px 13px; font-size:13px; font-weight:650; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; } .btn.success { color:var(--success); background:#eef8f1; border-color:#d8eddf; } .btn.danger { color:var(--danger); background:#fff3f1; border-color:#f2ded9; }
+    .progress { height:4px; background:#edf0f5; border-radius:9px; overflow:hidden; margin-top:18px; } .progress span { display:block; height:100%; background:var(--accent); transition:width .2s; }
+    aside { height:max-content; } aside h2 { margin-bottom:13px; } #topicList { display:grid; gap:3px; }
     .topic { width:100%; border:0; border-radius:7px; background:transparent; color:#536075; padding:9px 7px; display:flex; justify-content:space-between; text-align:left; font-size:13px; }
-    .topic:hover,.topic.selected { background:#f2f5fb; color:var(--ink); }
-    .count { color:#929db0; }
+    .topic:hover,.topic.selected { background:#f2f5fb; color:var(--ink); } .count { color:#929db0; }
     .empty { color:var(--muted); text-align:center; padding:32px 18px; border:1px dashed #d6deea; border-radius:10px; }
+    .done { color:var(--success); font-weight:700; }
     @media(max-width:760px) { .layout { grid-template-columns:1fr; } aside { order:-1; } #topicList { grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); } }
-    @media(max-width:520px) { main { padding:26px 14px 40px; } .heading { display:block; } .heading h1 { font-size:24px; } .panel { padding:15px; } .flashcard { min-height:290px; } .card-content { padding:25px 20px; font-size:18px; } .card-content.answer { font-size:16px; } }
+    @media(max-width:520px) { main { padding:26px 14px 40px; } h1 { font-size:24px; } .panel { padding:15px; } .flashcard { min-height:290px; } .card-content { padding:25px 20px; font-size:18px; } .card-content.answer { font-size:16px; } .controls .btn { flex:1 1 43%; } }
   </style>
 </head>
 <body>
-  <header class="topbar"><a href="index.html">← CFA Cards</a><span>Formula study session</span></header>
+  <header class="topbar"><a href="index.html">← CFA Cards</a><span>Formula-only study</span></header>
   <main>
-    <div class="heading"><div><h1>Formula deck</h1><p>Study every active formula together, or focus on a topic. Your existing formula cards are used automatically.</p></div></div>
+    <div class="heading"><h1>Formula deck</h1><p>Practice formula flashcards by topic. Mark each answer correct or wrong; missed formulas return for another try after a short gap.</p></div>
     <div class="layout">
-      <section class="panel">
-        <div class="study-head"><h2>Flashcards</h2><span class="counter" id="counter">Loading…</span></div>
+      <section class="panel" aria-label="Formula flashcards">
+        <div class="study-head"><h2>Formula flashcards</h2><span class="counter" id="counter">Loading…</span></div>
         <div class="flashcard" id="flashcard" tabindex="0" role="button" aria-label="Flashcard. Press space or enter to reveal the answer">
           <div class="card-top"><span class="chip" id="cardTopic">Formula</span><span class="state" id="cardState">QUESTION</span></div>
           <div class="card-content" id="cardContent"></div>
         </div>
+        <p class="hint" id="hint">Reveal the answer, then mark whether you got it right.</p>
         <div class="controls">
-          <button class="btn" id="previous">← Previous</button><button class="btn primary" id="flip">Show answer</button><button class="btn" id="next">Next →</button><button class="btn" id="shuffle">⤨ Shuffle</button>
+          <button class="btn" id="flip">Show answer</button>
+          <button class="btn danger" id="wrong" disabled>✕ Wrong — repeat soon</button>
+          <button class="btn success" id="correct" disabled>✓ Correct — continue</button>
         </div>
         <div class="progress"><span id="progressFill" style="width:0"></span></div>
       </section>
@@ -66,49 +65,65 @@
       const STORAGE_KEY = 'cfa-flashcards-v1';
       let formulas = [];
       let topic = 'all';
-      let session = [];
-      let index = 0;
+      let queue = [];
       let revealed = false;
+      let completed = 0;
+      let wrongCounts = {};
       const $ = (id) => document.getElementById(id);
-      const activeFormulas = () => formulas.filter((card) => !card.archived && (topic === 'all' || card.topic === topic));
+      const selectedFormulas = () => formulas.filter((card) => !card.archived && (topic === 'all' || (card.topic || 'General') === topic));
       function load() {
         try {
           const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
           formulas = Array.isArray(parsed) ? parsed.filter((card) => card && card.isFormula && !card.archived && typeof card.front === 'string' && typeof card.back === 'string') : [];
         } catch { formulas = []; }
+        if (topic !== 'all' && !formulas.some((card) => !card.archived && (card.topic || 'General') === topic)) topic = 'all';
         renderTopics();
         reset();
       }
-      function reset() { session = activeFormulas().map((card) => card.id); index = 0; revealed = false; render(); }
+      function reset() { queue = selectedFormulas().map((card) => card.id); completed = 0; wrongCounts = {}; revealed = false; render(); }
       function renderTopics() {
-        const topics = [...new Set(formulas.map((card) => card.topic || 'General'))].sort((a,b) => a.localeCompare(b));
-        const choices = [{ name:'All formulas', value:'all', count:formulas.length }, ...topics.map((name) => ({ name, value:name, count:formulas.filter((card) => (card.topic || 'General') === name).length }))];
-        $('topicList').innerHTML = choices.map((item) => `<button class="topic ${topic === item.value ? 'selected' : ''}" data-topic="${escapeHtml(item.value)}"><span>${escapeHtml(item.name)}</span><span class="count">${item.count}</span></button>`).join('') || '<div class="empty">Add formula cards in the Formula deck to study here.</div>';
+        const topics = [...new Set(formulas.filter((card) => !card.archived).map((card) => card.topic || 'General'))].sort((a,b) => a.localeCompare(b));
+        const choices = [{ name:'All formulas', value:'all', count:formulas.filter((card) => !card.archived).length }, ...topics.map((name) => ({ name, value:name, count:formulas.filter((card) => !card.archived && (card.topic || 'General') === name).length }))];
+        $('topicList').innerHTML = choices.length ? choices.map((item) => `<button class="topic ${topic === item.value ? 'selected' : ''}" data-topic="${escapeHtml(item.value)}"><span>${escapeHtml(item.name)}</span><span class="count">${item.count}</span></button>`).join('') : '<div class="empty">No formula cards yet. Add formula cards in the main deck first.</div>';
       }
       function escapeHtml(value) { return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[char])); }
       function render() {
-        const cards = activeFormulas();
-        const card = cards.find((item) => item.id === session[index]);
-        $('counter').textContent = card ? `${index + 1} of ${session.length}` : 'No formulas';
+        const card = formulas.find((item) => item.id === queue[0] && !item.archived);
+        const total = selectedFormulas().length;
+        $('counter').textContent = card ? `${completed} completed · ${queue.length} remaining` : (total ? 'Topic complete' : 'No formulas');
         $('cardTopic').textContent = card ? (card.topic || 'General') : 'Formula';
-        $('cardState').textContent = card ? (revealed ? 'ANSWER' : 'QUESTION') : 'READY';
-        $('cardContent').textContent = card ? (revealed ? card.back : card.front) : (formulas.length ? 'No formulas in this topic yet.' : 'Add formula cards in the Formula deck to start studying.');
+        $('cardState').textContent = card ? (revealed ? 'ANSWER' : 'QUESTION') : (total ? 'DONE' : 'READY');
+        $('cardContent').textContent = card ? (revealed ? card.back : card.front) : (total ? 'Great work — all formulas in this topic are correct for now.' : 'Add formula cards in the Formula deck to start studying.');
         $('cardContent').classList.toggle('answer', !!card && revealed);
         $('flip').disabled = !card;
-        $('previous').disabled = !card || session.length < 2;
-        $('next').disabled = !card || session.length < 2;
-        $('progressFill').style.width = card ? `${((index + 1) / session.length) * 100}%` : '0%';
-        $('flip').textContent = revealed ? 'Show question' : 'Show answer';
+        $('wrong').disabled = !card || !revealed;
+        $('correct').disabled = !card || !revealed;
+        $('flip').textContent = revealed ? 'Hide answer' : 'Show answer';
+        $('hint').textContent = card ? (revealed ? `Wrong answers are repeated after up to two other cards. Missed this card ${wrongCounts[card.id] || 0} time(s) this session.` : 'Think of the formula, reveal the answer, then mark it correct or wrong.') : '';
+        $('hint').classList.toggle('done', !card && total > 0);
+        $('progressFill').style.width = total ? `${Math.min(100, (completed / total) * 100)}%` : '0%';
       }
-      function flip() { if (!session.length) return; revealed = !revealed; render(); }
+      function flip() { if (!queue.length) return; revealed = !revealed; render(); }
+      function grade(isCorrect) {
+        if (!revealed || !queue.length) return;
+        const cardId = queue.shift();
+        revealed = false;
+        if (isCorrect) {
+          completed += 1;
+        } else {
+          wrongCounts[cardId] = (wrongCounts[cardId] || 0) + 1;
+          const repeatAfter = Math.min(2, queue.length);
+          queue.splice(repeatAfter, 0, cardId);
+        }
+        render();
+      }
       $('topicList').addEventListener('click', (event) => { const button = event.target.closest('[data-topic]'); if (!button) return; topic = button.dataset.topic; renderTopics(); reset(); });
       $('flashcard').addEventListener('click', flip);
       $('flashcard').addEventListener('keydown', (event) => { if (event.key === ' ' || event.key === 'Enter') { event.preventDefault(); flip(); } });
       $('flip').onclick = flip;
-      $('previous').onclick = () => { if (!session.length) return; index = (index - 1 + session.length) % session.length; revealed = false; render(); };
-      $('next').onclick = () => { if (!session.length) return; index = (index + 1) % session.length; revealed = false; render(); };
-      $('shuffle').onclick = () => { session.sort(() => Math.random() - .5); index = 0; revealed = false; render(); };
-      document.addEventListener('keydown', (event) => { if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return; if (event.key === 'ArrowRight') $('next').click(); if (event.key === 'ArrowLeft') $('previous').click(); if (event.code === 'Space') { event.preventDefault(); flip(); } });
+      $('wrong').onclick = () => grade(false);
+      $('correct').onclick = () => grade(true);
+      document.addEventListener('keydown', (event) => { if (['INPUT','TEXTAREA','SELECT','BUTTON'].includes(document.activeElement.tagName)) return; if (event.code === 'Space') { event.preventDefault(); flip(); } });
       window.addEventListener('storage', load);
       load();
     })();
