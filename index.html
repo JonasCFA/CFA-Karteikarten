@@ -17,6 +17,7 @@
       --accent: #4376f6;
       --accent-2: #eaf0ff;
       --danger: #c75e5e;
+      --success: #2f8f5b;
       --shadow: 0 18px 55px rgba(30, 45, 69, 0.08);
       font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -205,6 +206,11 @@
       background: var(--accent-2);
       border-color: var(--accent-2);
       color: #325bc7;
+    }
+    .btn.success {
+      background: rgba(47, 143, 91, 0.1);
+      border-color: rgba(47, 143, 91, 0.15);
+      color: var(--success);
     }
     .btn.danger {
       color: var(--danger);
@@ -469,6 +475,10 @@
       background: #fef0e9;
       color: #b86533;
     }
+    .pill.formula {
+      background: rgba(67, 118, 246, 0.1);
+      color: #3d67d3;
+    }
     .item-actions {
       display: flex;
       gap: 6px;
@@ -689,6 +699,7 @@
       <nav class="nav" aria-label="Main navigation">
         <button class="active" data-view="study"><span class="icon">▣</span><span>Study</span></button>
         <button data-view="deck"><span class="icon">▤</span><span>All cards</span></button>
+        <button data-view="formula"><span class="icon">∑</span><span>Formula deck</span></button>
         <button data-view="archived"><span class="icon">▣</span><span>Archived</span></button>
       </nav>
     </div>
@@ -708,8 +719,8 @@
       <section id="studyView">
         <div class="heading">
           <div>
-            <h1>Good to see you</h1>
-            <p>One card at a time. Think it through, then flip to check.</p>
+            <h1 id="studyHeading">Good to see you</h1>
+            <p id="studySubheading">One card at a time. Think it through, then flip to check.</p>
           </div>
           <div class="actions">
             <button class="btn" id="importOpen">⇧ Import PDFs</button>
@@ -720,17 +731,17 @@
         <div class="stats">
           <div class="stat">
             <div>
-              <div class="stat-label">Active cards</div>
+              <div class="stat-label">Main deck</div>
               <div class="stat-value" id="activeCount">0</div>
             </div>
             <div class="stat-icon">▤</div>
           </div>
           <div class="stat">
             <div>
-              <div class="stat-label">Topics</div>
-              <div class="stat-value" id="topicCount">0</div>
+              <div class="stat-label">Formula cards</div>
+              <div class="stat-value" id="formulaCount">0</div>
             </div>
-            <div class="stat-icon">◈</div>
+            <div class="stat-icon">∑</div>
           </div>
           <div class="stat">
             <div>
@@ -744,7 +755,7 @@
         <div class="study-layout">
           <section class="panel study-panel">
             <div class="study-head">
-              <h2>Study session</h2>
+              <h2 id="studySessionLabel">Study session</h2>
               <span class="counter" id="counter">No cards</span>
             </div>
 
@@ -758,14 +769,14 @@
             </div>
 
             <div class="study-controls">
-  <div class="control-group">
-    <button class="btn" id="prevCard">← Previous</button>
-    <button class="btn" id="flipCard">Show answer</button>
-    <button class="btn" id="nextCard">Next →</button>
-    <button class="btn danger" id="archiveCurrent">Archive this card</button>
-  </div>
-  <button class="btn small subtle" id="shuffle">⤨ Shuffle</button>
-</div>
+              <div class="control-group">
+                <button class="btn" id="prevCard">← Previous</button>
+                <button class="btn" id="flipCard">Show answer</button>
+                <button class="btn" id="nextCard">Next →</button>
+                <button class="btn danger" id="archiveCurrent">Archive this card</button>
+              </div>
+              <button class="btn small subtle" id="shuffle">⤨ Shuffle</button>
+            </div>
 
             <div class="progress"><span id="progressFill" style="width:0"></span></div>
             <div class="footer-note">Keyboard: <span class="kbd">Space</span> reveal · <span class="kbd">←</span> previous · <span class="kbd">→</span> next</div>
@@ -788,7 +799,7 @@
         <div class="heading">
           <div>
             <h1>All flashcards</h1>
-            <p>Browse, edit, or archive cards in your active deck.</p>
+            <p>Browse, edit, archive, or move cards into the formula deck.</p>
           </div>
           <div class="actions">
             <button class="btn" id="deckImport">⇧ Import PDFs</button>
@@ -805,6 +816,29 @@
           </div>
         </div>
         <div class="deck" id="deckList"></div>
+      </section>
+
+      <section id="formulaView" class="hidden">
+        <div class="heading">
+          <div>
+            <h1>Formula deck</h1>
+            <p>Keep formulas separate and repeat them more often for exam memory.</p>
+          </div>
+          <div class="actions">
+            <button class="btn" id="formulaImport">⇧ Import PDFs</button>
+            <button class="btn primary" id="formulaAdd">＋ New formula card</button>
+          </div>
+        </div>
+        <div class="section-bar">
+          <h2 id="formulaTitle">Formula cards</h2>
+          <div class="section-tools">
+            <input id="formulaSearch" class="search" placeholder="Search formulas…" aria-label="Search formulas">
+            <select id="formulaTopicSelect" class="search" aria-label="Filter by topic">
+              <option value="all">All topics</option>
+            </select>
+          </div>
+        </div>
+        <div class="deck" id="formulaList"></div>
       </section>
 
       <section id="archivedView" class="hidden">
@@ -848,24 +882,34 @@
 
   const $ = (id) => document.getElementById(id);
 
+  function currentDeckKind() {
+    return view === 'formula' ? 'formula' : 'main';
+  }
+
   function loadCards() {
     try {
       const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       return Array.isArray(raw)
-        ? raw.filter((c) => c && typeof c.front === 'string' && typeof c.back === 'string').map((c) => ({ ...c, archived: !!c.archived }))
+        ? raw.filter((c) => c && typeof c.front === 'string' && typeof c.back === 'string').map((c) => ({
+            ...c,
+            archived: !!c.archived,
+            isFormula: !!c.isFormula,
+            topic: c.topic || 'General'
+          }))
         : [];
     } catch {
       return [];
     }
   }
 
- function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
-  session = activeCards().map((card) => card.id);
-  sessionIndex = 0;
-  revealed = false;
-  render();
-}
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+    session = activeCards().map((card) => card.id);
+    sessionIndex = 0;
+    revealed = false;
+    render();
+  }
+
   function toast(message) {
     const el = $('toast');
     el.textContent = message;
@@ -875,11 +919,19 @@
   }
 
   function activeCards() {
-    return cards.filter((card) => !card.archived && (topic === 'all' || card.topic === topic));
+    return cards.filter((card) => !card.archived && card.isFormula === (currentDeckKind() === 'formula') && (topic === 'all' || card.topic === topic));
   }
 
-  function distinctTopics() {
-    return [...new Set(cards.map((c) => c.topic).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  function cardsForDeck(deckKind, includeArchived = false) {
+    return cards.filter((card) => {
+      const matchesDeck = card.isFormula === (deckKind === 'formula');
+      const matchesArchived = includeArchived ? card.archived : !card.archived;
+      return matchesDeck && matchesArchived;
+    });
+  }
+
+  function distinctTopicsForDeck(deckKind) {
+    return [...new Set(cardsForDeck(deckKind).map((c) => c.topic).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   }
 
   function resetSession() {
@@ -896,29 +948,36 @@
     const targetId = session[sessionIndex];
     return active.find((card) => card.id === targetId) || null;
   }
-function archiveCurrentCard() {
-  const card = currentCard();
-  if (!card) return;
 
-  card.archived = true;
-  session = activeCards().map((item) => item.id);
-  if (sessionIndex >= session.length) {
-    sessionIndex = Math.max(0, session.length - 1);
+  function archiveCurrentCard() {
+    const card = currentCard();
+    if (!card) return;
+
+    card.archived = true;
+    session = activeCards().map((item) => item.id);
+    if (sessionIndex >= session.length) {
+      sessionIndex = Math.max(0, session.length - 1);
+    }
+    revealed = false;
+
+    save();
+    toast('Card archived. It has not been deleted.');
   }
-  revealed = false;
 
-  save();
-  toast('Card archived. It has not been deleted.');
-}  function renderStats() {
-    const topics = distinctTopics();
-    $('activeCount').textContent = cards.filter((card) => !card.archived).length;
-    $('topicCount').textContent = topics.length;
-    $('archivedCount').textContent = cards.filter((card) => card.archived).length;
+  function renderStats() {
+    const mainCards = cards.filter((card) => !card.archived && !card.isFormula).length;
+    const formulaCards = cards.filter((card) => !card.archived && card.isFormula).length;
+    const archivedCards = cards.filter((card) => card.archived).length;
 
+    $('activeCount').textContent = mainCards;
+    $('formulaCount').textContent = formulaCards;
+    $('archivedCount').textContent = archivedCards;
+
+    const topics = distinctTopicsForDeck(currentDeckKind());
     const topicList = topics.length
       ? topics.map((t) => {
-          const activeForTopic = cards.filter((card) => !card.archived && card.topic === t).length;
-          return `<button class="topic-row ${topic === t ? 'selected' : ''}" data-topic="${escapeHtml(t)}"><span>${escapeHtml(t)}</span><span class="topic-count">${activeForTopic}</span></button>`;
+          const count = cards.filter((card) => !card.archived && card.isFormula === (currentDeckKind() === 'formula') && card.topic === t).length;
+          return `<button class="topic-row ${topic === t ? 'selected' : ''}" data-topic="${escapeHtml(t)}"><span>${escapeHtml(t)}</span><span class="topic-count">${count}</span></button>`;
         }).join('')
       : '<div class="muted">Topics appear here when you add cards.</div>';
 
@@ -935,17 +994,31 @@ function archiveCurrentCard() {
     }[char]));
   }
 
+  function updateStudyHeading() {
+    const isFormulaDeck = currentDeckKind() === 'formula';
+    $('studyHeading').textContent = isFormulaDeck ? 'Formula focus mode' : 'Good to see you';
+    $('studySubheading').textContent = isFormulaDeck
+      ? 'Repeat your formulas often and keep the rest of the deck separate.'
+      : 'One card at a time. Think it through, then flip to check.';
+    $('studySessionLabel').textContent = isFormulaDeck ? 'Formula study session' : 'Study session';
+  }
+
   function renderStudy() {
     const validSession = session.filter((id) => activeCards().some((card) => card.id === id));
     if (validSession.length !== session.length) {
       session = validSession;
     }
+
+    updateStudyHeading();
+
     if (!session.length) {
       sessionIndex = 0;
       $('counter').textContent = 'No cards';
       $('cardTopic').textContent = 'No topic';
       $('cardState').textContent = 'QUESTION';
-      $('cardContent').textContent = 'Add a flashcard or import a PDF deck to begin.';
+      $('cardContent').textContent = currentDeckKind() === 'formula'
+        ? 'Add a formula card to start your formula repetition set.'
+        : 'Add a flashcard or import a PDF deck to begin.';
       $('cardContent').classList.remove('back');
       $('tapHint').innerHTML = 'Click or press <span class="kbd">Space</span> to reveal';
       $('flipCard').disabled = true;
@@ -974,26 +1047,29 @@ function archiveCurrentCard() {
     $('progressFill').style.width = total ? `${((sessionIndex + 1) / total) * 100}%` : '0%';
   }
 
-  function renderDeck(archived = false) {
-    const listEl = archived ? $('archList') : $('deckList');
-    const searchEl = archived ? $('archSearch') : $('deckSearch');
-    const topicEl = archived ? null : $('deckTopicSelect');
-    const selectedTopic = archived ? 'all' : (topicEl.value || 'all');
+  function renderDeckList(kind, listElId, searchElId, topicElId) {
+    const listEl = $(listElId);
+    const searchEl = $(searchElId);
+    const topicEl = $(topicElId);
+    const selectedTopic = topicEl ? (topicEl.value || 'all') : 'all';
     const query = (searchEl.value || '').trim().toLowerCase();
 
     const matches = cards.filter((card) => {
-      const inArchivedState = card.archived === archived;
+      const isDeckMatch = card.isFormula === (kind === 'formula');
+      const isArchivedState = !card.archived;
       const topicMatches = selectedTopic === 'all' || card.topic === selectedTopic;
       const searchMatches = !query || [card.front, card.back, card.topic].some((value) => (value || '').toLowerCase().includes(query));
-      return inArchivedState && topicMatches && searchMatches;
+      return isDeckMatch && isArchivedState && topicMatches && searchMatches;
     });
 
-    if (!archived) {
+    if (kind === 'main') {
       $('deckTitle').textContent = selectedTopic === 'all' ? 'Active cards' : `${selectedTopic} cards`;
+    } else if (kind === 'formula') {
+      $('formulaTitle').textContent = selectedTopic === 'all' ? 'Formula cards' : `${selectedTopic} formulas`;
     }
 
     if (!matches.length) {
-      listEl.innerHTML = `<div class="empty">${archived ? 'No archived cards yet. Archive cards to keep them out of your active deck.' : 'No cards found. Add one or import a PDF to get started.'}</div>`;
+      listEl.innerHTML = `<div class="empty">${kind === 'formula' ? 'No formula cards yet. Send formulas here from the main deck.' : 'No cards found. Add one or import a PDF to get started.'}</div>`;
       return;
     }
 
@@ -1004,52 +1080,85 @@ function archiveCurrentCard() {
           <p>${escapeHtml(card.back)}</p>
           <div class="deck-meta">
             <span class="topic-chip">${escapeHtml(card.topic)}</span>
-            <span class="pill ${card.archived ? 'archived' : ''}">${card.archived ? 'Archived' : 'Active'}</span>
+            <span class="pill ${card.isFormula ? 'formula' : ''}">${card.isFormula ? 'Formula' : 'Main'}</span>
           </div>
         </div>
         <div class="item-actions">
-          ${card.archived ? `<button class="btn small" data-action="restore" data-id="${card.id}">↶ Restore</button>` : `
-            <button class="btn small" data-action="edit" data-id="${card.id}">Edit</button>
-            <button class="btn small danger" data-action="archive" data-id="${card.id}">Archive</button>
-          `}
+          <button class="btn small" data-action="edit" data-id="${card.id}">Edit</button>
+          <button class="btn small ${card.isFormula ? 'success' : ''}" data-action="toggle-formula" data-id="${card.id}">${card.isFormula ? 'Back to main' : 'Send to formula deck'}</button>
+          <button class="btn small danger" data-action="archive" data-id="${card.id}">Archive</button>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  function renderArchivedDeck() {
+    const listEl = $('archList');
+    const query = ($('archSearch').value || '').trim().toLowerCase();
+    const matches = cards.filter((card) => card.archived && (!query || [card.front, card.back, card.topic].some((value) => (value || '').toLowerCase().includes(query))));
+
+    if (!matches.length) {
+      listEl.innerHTML = '<div class="empty">No archived cards yet. Archive cards to keep them out of your active deck.</div>';
+      return;
+    }
+
+    listEl.innerHTML = matches.map((card) => `
+      <article class="deck-item">
+        <div>
+          <h3>${escapeHtml(card.front)}</h3>
+          <p>${escapeHtml(card.back)}</p>
+          <div class="deck-meta">
+            <span class="topic-chip">${escapeHtml(card.topic)}</span>
+            <span class="pill ${card.isFormula ? 'formula' : ''}">${card.isFormula ? 'Formula' : 'Main'}</span>
+            <span class="pill archived">Archived</span>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="btn small" data-action="restore" data-id="${card.id}">Restore</button>
+          <button class="btn small danger" data-action="delete" data-id="${card.id}">Delete</button>
         </div>
       </article>
     `).join('');
   }
 
   function updateTopicOptions() {
-    const options = ['<option value="all">All topics</option>', ...distinctTopics().map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`)].join('');
-    const topicSelect = $('topicSelect');
-    const deckTopicSelect = $('deckTopicSelect');
-    const previousTopic = topicSelect.value;
-    topicSelect.innerHTML = options;
-    deckTopicSelect.innerHTML = options;
-    if (distinctTopics().includes(previousTopic)) {
-      topicSelect.value = previousTopic;
-      deckTopicSelect.value = previousTopic;
-    } else {
-      topicSelect.value = 'all';
-      deckTopicSelect.value = 'all';
-    }
+    const mainTopics = distinctTopicsForDeck('main');
+    const formulaTopics = distinctTopicsForDeck('formula');
+    const allTopics = [...new Set([...mainTopics, ...formulaTopics])].sort((a, b) => a.localeCompare(b));
+    const options = ['<option value="all">All topics</option>', ...allTopics.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`)].join('');
+
+    $('topicSelect').innerHTML = options;
+    $('deckTopicSelect').innerHTML = options;
+    $('formulaTopicSelect').innerHTML = options;
+    $('topicSelect').value = topic;
+    $('deckTopicSelect').value = topic;
+    $('formulaTopicSelect').value = topic;
   }
 
   function render() {
     updateTopicOptions();
     renderStats();
     renderStudy();
-    renderDeck(false);
-    renderDeck(true);
+    renderDeckList('main', 'deckList', 'deckSearch', 'deckTopicSelect');
+    renderDeckList('formula', 'formulaList', 'formulaSearch', 'formulaTopicSelect');
+    renderArchivedDeck();
   }
 
   function setView(nextView) {
     view = nextView;
-    for (const viewName of ['study', 'deck', 'archived']) {
+    for (const viewName of ['study', 'deck', 'formula', 'archived']) {
       const section = $(viewName + 'View');
       if (section) section.classList.toggle('hidden', viewName !== nextView);
       const navButton = document.querySelector(`[data-view="${viewName}"]`);
       if (navButton) navButton.classList.toggle('active', viewName === nextView);
     }
-    $('crumbTitle').textContent = nextView === 'deck' ? 'All cards' : nextView === 'archived' ? 'Archived' : 'Study';
+    $('crumbTitle').textContent = nextView === 'deck' ? 'All cards' : nextView === 'formula' ? 'Formula deck' : nextView === 'archived' ? 'Archived' : 'Study';
+    if (nextView === 'formula') {
+      topic = $('formulaTopicSelect').value || 'all';
+    } else {
+      topic = $('topicSelect').value || 'all';
+    }
+    resetSession();
   }
 
   function closeModal() {
@@ -1080,15 +1189,17 @@ function archiveCurrentCard() {
     if (event.key === 'Escape') closeModal();
   }
 
-  function openCardForm(card = null) {
+  function openCardForm(card = null, createFormulaCard = false) {
     const isEdit = !!card;
+    const formulaFlag = !!(card && card.isFormula) || createFormulaCard;
+
     const body = `
       <form id="cardForm">
         <div class="form-grid">
           <div class="field">
             <label for="cardTopicInput">Topic</label>
             <input id="cardTopicInput" list="topicSuggestions" required maxlength="60" value="${escapeHtml(card?.topic || '')}" placeholder="e.g. Fixed Income">
-            <datalist id="topicSuggestions">${distinctTopics().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
+            <datalist id="topicSuggestions">${[...new Set([...distinctTopicsForDeck('main'), ...distinctTopicsForDeck('formula')])].sort().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
           </div>
 
           <div class="field">
@@ -1109,9 +1220,9 @@ function archiveCurrentCard() {
       </form>
     `;
 
-    openModal(isEdit ? 'Edit flashcard' : 'New flashcard', body, `
+    openModal(isEdit ? 'Edit flashcard' : formulaFlag ? 'New formula card' : 'New flashcard', body, `
       <button class="btn" id="cancelForm">Cancel</button>
-      <button class="btn primary" id="saveForm">${isEdit ? 'Save changes' : 'Add flashcard'}</button>
+      <button class="btn primary" id="saveForm">${isEdit ? 'Save changes' : formulaFlag ? 'Add formula card' : 'Add flashcard'}</button>
     `);
 
     $('cancelForm').onclick = closeModal;
@@ -1131,6 +1242,7 @@ function archiveCurrentCard() {
         card.back = back;
         card.topic = topicName;
         card.source = source;
+        card.isFormula = formulaFlag;
       } else {
         cards.push({
           id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -1139,13 +1251,14 @@ function archiveCurrentCard() {
           topic: topicName,
           source,
           archived: false,
+          isFormula: formulaFlag,
           createdAt: new Date().toISOString()
         });
       }
 
       closeModal();
       save();
-      toast(isEdit ? 'Card updated.' : 'Card added to your deck.');
+      toast(isEdit ? 'Card updated.' : formulaFlag ? 'Formula card added.' : 'Card added to your deck.');
     };
 
     $('cardForm').addEventListener('submit', (event) => {
@@ -1191,7 +1304,7 @@ function archiveCurrentCard() {
       <div class="field">
         <label for="pdfTopic">Topic for this PDF</label>
         <input id="pdfTopic" list="pdfTopics" placeholder="e.g. Fixed Income" value="">
-        <datalist id="pdfTopics">${distinctTopics().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
+        <datalist id="pdfTopics">${[...new Set([...distinctTopicsForDeck('main'), ...distinctTopicsForDeck('formula')])].sort().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
       </div>
 
       <div class="field">
@@ -1318,6 +1431,7 @@ function archiveCurrentCard() {
           topic: card.topic,
           source: card.source,
           archived: false,
+          isFormula: false,
           createdAt: new Date().toISOString()
         });
       });
@@ -1343,8 +1457,18 @@ function archiveCurrentCard() {
       save();
       toast('Card restored to the active deck.');
     }
+    if (action === 'delete') {
+      cards = cards.filter((item) => item.id !== id);
+      save();
+      toast('Card deleted.');
+    }
     if (action === 'edit') {
       openCardForm(card);
+    }
+    if (action === 'toggle-formula') {
+      card.isFormula = !card.isFormula;
+      save();
+      toast(card.isFormula ? 'Moved to formula deck.' : 'Moved back to main deck.');
     }
   }
 
@@ -1355,13 +1479,23 @@ function archiveCurrentCard() {
   $('topAdd').onclick = () => openCardForm();
   $('addOpen').onclick = () => openCardForm();
   $('deckAdd').onclick = () => openCardForm();
+  $('formulaAdd').onclick = () => openCardForm(null, true);
   $('importOpen').onclick = openImport;
   $('deckImport').onclick = openImport;
+  $('formulaImport').onclick = openImport;
   $('archImport').onclick = openImport;
 
   $('topicSelect').onchange = () => {
     topic = $('topicSelect').value;
     resetSession();
+  };
+
+  $('deckTopicSelect').onchange = () => {
+    renderDeckList('main', 'deckList', 'deckSearch', 'deckTopicSelect');
+  };
+
+  $('formulaTopicSelect').onchange = () => {
+    renderDeckList('formula', 'formulaList', 'formulaSearch', 'formulaTopicSelect');
   };
 
   $('topicList').addEventListener('click', (event) => {
@@ -1390,7 +1524,10 @@ function archiveCurrentCard() {
     revealed = !revealed;
     renderStudy();
   };
-$('archiveCurrent').onclick = archiveCurrentCard;  $('nextCard').onclick = () => {
+
+  $('archiveCurrent').onclick = archiveCurrentCard;
+
+  $('nextCard').onclick = () => {
     const active = activeCards();
     if (!active.length) return;
     sessionIndex = (sessionIndex + 1) % active.length;
@@ -1414,9 +1551,9 @@ $('archiveCurrent').onclick = archiveCurrentCard;  $('nextCard').onclick = () =>
     renderStudy();
   };
 
-  $('deckSearch').addEventListener('input', () => renderDeck(false));
-  $('archSearch').addEventListener('input', () => renderDeck(true));
-  $('deckTopicSelect').addEventListener('change', () => renderDeck(false));
+  $('deckSearch').addEventListener('input', () => renderDeckList('main', 'deckList', 'deckSearch', 'deckTopicSelect'));
+  $('formulaSearch').addEventListener('input', () => renderDeckList('formula', 'formulaList', 'formulaSearch', 'formulaTopicSelect'));
+  $('archSearch').addEventListener('input', renderArchivedDeck);
 
   document.addEventListener('click', (event) => {
     const actionButton = event.target.closest('[data-action]');
@@ -1426,7 +1563,7 @@ $('archiveCurrent').onclick = archiveCurrentCard;  $('nextCard').onclick = () =>
 
   document.addEventListener('keydown', (event) => {
     if ($('modalRoot').innerHTML) return;
-    if (view !== 'study') return;
+    if (view !== 'study' && view !== 'formula') return;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
     if (event.key === 'ArrowRight') $('nextCard').click();
