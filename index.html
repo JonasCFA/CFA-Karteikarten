@@ -758,13 +758,14 @@
             </div>
 
             <div class="study-controls">
-              <div class="control-group">
-                <button class="btn" id="prevCard">← Previous</button>
-                <button class="btn" id="flipCard">Show answer</button>
-                <button class="btn" id="nextCard">Next →</button>
-              </div>
-              <button class="btn small subtle" id="shuffle">⤨ Shuffle</button>
-            </div>
+  <div class="control-group">
+    <button class="btn" id="prevCard">← Previous</button>
+    <button class="btn" id="flipCard">Show answer</button>
+    <button class="btn" id="nextCard">Next →</button>
+    <button class="btn danger" id="archiveCurrent">Archive this card</button>
+  </div>
+  <button class="btn small subtle" id="shuffle">⤨ Shuffle</button>
+</div>
 
             <div class="progress"><span id="progressFill" style="width:0"></span></div>
             <div class="footer-note">Keyboard: <span class="kbd">Space</span> reveal · <span class="kbd">←</span> previous · <span class="kbd">→</span> next</div>
@@ -895,8 +896,20 @@
     const targetId = session[sessionIndex];
     return active.find((card) => card.id === targetId) || null;
   }
+function archiveCurrentCard() {
+  const card = currentCard();
+  if (!card) return;
 
-  function renderStats() {
+  card.archived = true;
+  session = activeCards().map((item) => item.id);
+  if (sessionIndex >= session.length) {
+    sessionIndex = Math.max(0, session.length - 1);
+  }
+  revealed = false;
+
+  save();
+  toast('Card archived. It has not been deleted.');
+}  function renderStats() {
     const topics = distinctTopics();
     $('activeCount').textContent = cards.filter((card) => !card.archived).length;
     $('topicCount').textContent = topics.length;
@@ -1377,8 +1390,7 @@
     revealed = !revealed;
     renderStudy();
   };
-
-  $('nextCard').onclick = () => {
+$('archiveCurrent').onclick = archiveCurrentCard;  $('nextCard').onclick = () => {
     const active = activeCards();
     if (!active.length) return;
     sessionIndex = (sessionIndex + 1) % active.length;
