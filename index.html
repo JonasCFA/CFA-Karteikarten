@@ -184,6 +184,17 @@
       .deck-item { grid-template-columns: 1fr; }
       .item-actions { justify-content: flex-end; }
     }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(17, 27, 43, 0.72); display: grid; place-items: center; padding: 18px; z-index: 5; }
+    .modal { width: min(590px, 100%); max-height: 90vh; overflow: auto; background: white; border-radius: 15px; box-shadow: 0 25px 90px rgba(16, 28, 46, 0.52); }
+    .modal-head { padding: 19px 22px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .modal-head h2 { margin: 0; font-size: 17px; }
+    .close { border: 0; background: none; color: var(--muted); font-size: 22px; line-height: 1; }
+    .modal-body { padding: 20px 22px; }
+    .modal-footer { padding: 14px 22px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .field.full { grid-column: 1 / -1; }
+    .field textarea { min-height: 105px; resize: vertical; }
     .form-help {
       font-size: 11px;
       color: var(--muted);
