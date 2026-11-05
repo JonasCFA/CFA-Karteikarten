@@ -253,6 +253,9 @@
       <header class="topbar">
         <div class="crumb">Workspace / <strong id="crumbTitle">Study</strong></div>
         <div class="top-actions">
+          <button class="btn small" id="backupExport">⇩ Backup</button>
+          <button class="btn small" id="backupImport">⇧ Restore</button>
+          <input type="file" id="backupFile" accept="application/json,.json" hidden>
           <button class="btn small" id="topAdd">＋ Add card</button>
           <div class="profile" title="Local deck">C</div>
         </div>
@@ -1092,6 +1095,35 @@
       if (event.code === 'Space') {
         event.preventDefault();
         $('flipCard').click();
+      }
+    });
+
+    $('backupExport').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify({ version: 1, cards }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `cfa-cards-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast(`Backed up ${cards.length} cards`);
+    });
+    $('backupImport').addEventListener('click', () => $('backupFile').click());
+    $('backupFile').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const list = Array.isArray(data) ? data : data.cards;
+        const valid = (Array.isArray(list) ? list : []).filter((c) => c && typeof c.front === 'string' && typeof c.back === 'string');
+        if (!valid.length) throw new Error('empty');
+        const ids = new Set(cards.map((c) => c.id));
+        const added = valid.filter((c) => !ids.has(c.id));
+        cards = cards.concat(added);
+        save();
+        toast(`Restored ${added.length} cards`);
+      } catch {
+        toast('Invalid backup file');
       }
     });
 
