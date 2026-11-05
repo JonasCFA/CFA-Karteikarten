@@ -184,6 +184,47 @@
       .deck-item { grid-template-columns: 1fr; }
       .item-actions { justify-content: flex-end; }
     }
+    .form-help {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: -6px;
+    }
+    .pdf-instructions {
+      background: #f4f7fc;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 12px;
+      color: #536075;
+      margin: 0 0 15px;
+    }
+    .import-preview {
+      max-height: 240px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .preview-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+    }
+    .preview-row:last-child {
+      border-bottom: 0;
+    }
+    .preview-row span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .notice {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -375,6 +416,7 @@
 
   <div id="toast" class="toast hidden" role="status"></div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script>
   (() => {
     'use strict';
@@ -663,6 +705,194 @@
       toast('Card deleted.');
     }
 
+    function assignTextToGrid(items, width, height, cols, rows) {
+      const grid = Array.from({ length: rows }, () => Array.from({ length: cols }, () => []));
+      const textEntries = items
+        .filter((item) => item && item.str && item.str.trim())
+        .map((item) => ({
+          x: item.transform ? item.transform[4] : 0,
+          y: item.transform ? item.transform[5] : 0,
+          text: item.str
+        }))
+        .sort((a, b) => b.y - a.y || a.x - b.x);
+
+      for (const entry of textEntries) {
+        const column = Math.min(cols - 1, Math.max(0, Math.floor((entry.x / width) * cols)));
+        const row = Math.min(rows - 1, Math.max(0, Math.floor((height - entry.y) / height * rows)));
+        grid[row][column].push(entry);
+      }
+
+      return grid.map((row) => row.map((cell) => {
+        const combined = cell.sort((a, b) => b.y - a.y || a.x - b.x).map((entry) => entry.text).join(' ');
+        return combined.replace(/\s+/g, ' ').trim();
+      }));
+    }
+
+    function openImport() {
+      if (!window.pdfjsLib) {
+        toast('PDF import could not load. Check your connection and refresh.');
+        return;
+      }
+
+      const body = `
+        <div class="pdf-instructions">
+          <strong>Front/back pairing rule:</strong> put page 1 top-left card with page 2 top-right card, keeping rows aligned. Each row is treated as a card pair, and the left/right columns are mirrored across the two pages.
+        </div>
+
+        <div class="field">
+          <label for="pdfTopic">Topic for this PDF</label>
+          <input id="pdfTopic" list="pdfTopics" placeholder="e.g. Fixed Income" value="">
+          <datalist id="pdfTopics">${[...new Set([...distinctTopicsForDeck('main'), ...distinctTopicsForDeck('formula')])].sort().map((topicName) => `<option value="${escapeHtml(topicName)}">`).join('')}</datalist>
+        </div>
+
+        <div class="field">
+          <label for="pdfFile">Select a flashcard PDF</label>
+          <input id="pdfFile" type="file" accept="application/pdf,.pdf">
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="gridCols">Columns per page</label>
+            <input id="gridCols" type="number" min="1" max="6" value="2">
+          </div>
+          <div class="field">
+            <label for="gridRows">Rows per page</label>
+            <input id="gridRows" type="number" min="1" max="12" value="4">
+          </div>
+        </div>
+
+        <div class="form-help">Choose the exact printed grid of the PDF. The importer matches row-by-row and mirrors the back page.</div>
+        <div class="notice" id="importStatus">PDF text is extracted in your browser and is not uploaded.</div>
+        <div class="import-preview hidden" id="importPreview"></div>
+      `;
+
+      const modal = document.createElement('div');
+      modal.innerHTML = `
+        <div class="modal-backdrop" id="modalBackdrop">
+          <div class="modal" role="dialog" aria-modal="true">
+            <div class="modal-head"><h2>Import flashcards from PDF</h2><button class="close" id="closeForm" aria-label="Close">×</button></div>
+            <div class="modal-body">${body}</div>
+            <div class="modal-footer">
+              <button class="btn" id="cancelImport">Cancel</button>
+              <button class="btn primary" id="parsePdf">Read PDF</button>
+              <button class="btn primary hidden" id="saveImported">Add reviewed cards</button>
+            </div>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      const closeModal = () => modal.remove();
+      modal.querySelector('#closeForm').onclick = closeModal;
+      modal.querySelector('#modalBackdrop').onclick = (event) => { if (event.target.id === 'modalBackdrop') closeModal(); };
+      $('cancelImport').onclick = closeModal;
+      $('parsePdf').onclick = async () => {
+        const file = $('pdfFile').files[0];
+        const topicName = $('pdfTopic').value.trim();
+        const cols = Number($('gridCols').value);
+        const rows = Number($('gridRows').value);
+
+        if (!file || !topicName) {
+          toast('Choose a PDF and enter its topic.');
+          return;
+        }
+        if (!cols || !rows || cols * rows > 48) {
+          toast('Use a valid page grid (up to 48 cards per page).');
+          return;
+        }
+
+        const status = $('importStatus');
+        const button = $('parsePdf');
+        button.disabled = true;
+        status.textContent = 'Reading PDF text…';
+
+        try {
+          const pdfLib = window.pdfjsLib;
+          pdfLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const fileBytes = new Uint8Array(await file.arrayBuffer());
+          const pdf = await pdfLib.getDocument({ data: fileBytes }).promise;
+
+          if (pdf.numPages % 2 !== 0) {
+            throw new Error(`This PDF has ${pdf.numPages} pages. Front/back pages must come in pairs.`);
+          }
+
+          const pageGrids = [];
+          for (let pageIndex = 1; pageIndex <= pdf.numPages; pageIndex += 1) {
+            status.textContent = `Reading page ${pageIndex} of ${pdf.numPages}…`;
+            const page = await pdf.getPage(pageIndex);
+            const text = await page.getTextContent();
+            const viewport = page.getViewport({ scale: 1 });
+            pageGrids.push(assignTextToGrid(text.items, viewport.width, viewport.height, cols, rows));
+          }
+
+          const draft = [];
+          for (let i = 0; i < pageGrids.length; i += 2) {
+            const frontGrid = pageGrids[i];
+            const backGrid = pageGrids[i + 1];
+
+            for (let row = 0; row < rows; row += 1) {
+              for (let col = 0; col < cols; col += 1) {
+                const frontText = frontGrid[row][col].trim();
+                const mirroredCol = cols - 1 - col;
+                const backText = backGrid[row][mirroredCol].trim();
+
+                if (frontText || backText) {
+                  draft.push({
+                    front: frontText || '[Front text missing — edit card]',
+                    back: backText || '[Back text missing — edit card]',
+                    topic: topicName,
+                    source: `${file.name} • pages ${i + 1}–${i + 2}`
+                  });
+                }
+              }
+            }
+          }
+
+          if (!draft.length) {
+            throw new Error('No text was found in the configured grid. Try adjusting the rows/columns or use a PDF with selectable text.');
+          }
+
+          window.importDraft = draft;
+          const preview = $('importPreview');
+          preview.innerHTML = draft.slice(0, 10).map((card, index) => `
+            <div class="preview-row">
+              <span><b>${index + 1} · Front:</b> ${escapeHtml(card.front)}</span>
+              <span><b>Back:</b> ${escapeHtml(card.back)}</span>
+            </div>
+          `).join('') + (draft.length > 10 ? `<div class="preview-row"><span>… and ${draft.length - 10} more cards</span></div>` : '');
+          preview.classList.remove('hidden');
+          status.textContent = `Found ${draft.length} paired cards. Review the matching preview; you can still edit them after importing.`;
+          $('saveImported').classList.remove('hidden');
+          button.textContent = 'Read again';
+          button.disabled = false;
+        } catch (error) {
+          status.textContent = error.message || 'Could not read this PDF.';
+          button.disabled = false;
+          toast('Unable to import from this PDF. Check the layout and try again.');
+        }
+      };
+
+      $('saveImported').onclick = () => {
+        const importedCards = window.importDraft || [];
+        importedCards.forEach((card) => {
+          cards.push({
+            id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            front: card.front,
+            back: card.back,
+            topic: card.topic,
+            source: card.source,
+            archived: false,
+            isFormula: false,
+            createdAt: new Date().toISOString()
+          });
+        });
+        delete window.importDraft;
+        closeModal();
+        save();
+        toast(`${importedCards.length} cards imported.`);
+        setView('deck');
+      };
+    }
+
+
     function handleItemAction(action, id) {
       if (action === 'edit') openCardForm(cards.find((card) => card.id === id));
       if (action === 'toggle-formula') toggleFormula(id);
@@ -776,10 +1006,10 @@
     $('addOpen').onclick = () => openCardForm();
     $('deckAdd').onclick = () => openCardForm();
     $('formulaAdd').onclick = () => openCardForm();
-    $('importOpen').onclick = () => toast('Import flow is available in the app screens that use it.');
-    $('deckImport').onclick = () => toast('Import PDFs is available in the main app flow.');
-    $('formulaImport').onclick = () => toast('Import PDFs is available in the formula deck flow.');
-    $('archImport').onclick = () => toast('Import PDFs is available in the archived flow.');
+    $('importOpen').onclick = openImport;
+    $('deckImport').onclick = openImport;
+    $('formulaImport').onclick = openImport;
+    $('archImport').onclick = openImport;
 
     $('studyDeckSelect').onchange = handleDeckSelect;
     $('topicSelect').onchange = () => {
