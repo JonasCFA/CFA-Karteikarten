@@ -525,6 +525,17 @@
       $('studySessionLabel').textContent = isFormulaDeck ? 'Formula study session' : 'Study session';
     }
 
+    function splitHeader(card, text) {
+      const topicText = (card.topic || '').trim();
+      const lead = text.replace(/^\s+/, '');
+      if (topicText && lead.toLowerCase().startsWith(topicText.toLowerCase())) {
+        return { header: topicText, body: lead.slice(topicText.length).replace(/^[\s:–—-]+/, '') };
+      }
+      const match = lead.match(/^(.{3,60}?\bModul\s*\d+)[\s:–—-]+/i);
+      if (match) return { header: match[1].trim(), body: lead.slice(match[0].length) };
+      return { header: topicText || 'No topic', body: text };
+    }
+
     function renderStudy() {
       updateStudyHeading();
       const active = activeCards();
@@ -553,9 +564,10 @@
       const visibleCard = currentCard();
       const total = session.length || active.length;
       $('counter').textContent = `${Math.min(session.length, total)} left`;
-      $('cardTopic').textContent = visibleCard ? visibleCard.topic : 'No topic';
+      const parts = visibleCard ? splitHeader(visibleCard, revealed ? visibleCard.back : visibleCard.front) : null;
+      $('cardTopic').textContent = parts ? parts.header : 'No topic';
       $('cardState').textContent = revealed ? 'ANSWER' : 'QUESTION';
-      $('cardContent').textContent = visibleCard ? (revealed ? visibleCard.back : visibleCard.front) : 'Loading…';
+      $('cardContent').textContent = parts ? parts.body : 'Loading…';
       $('cardContent').classList.toggle('back', !!visibleCard && revealed);
       $('tapHint').innerHTML = revealed
         ? 'Click or press <span class="kbd">Space</span> to hide the answer'
