@@ -1000,9 +1000,10 @@
       const current = currentCard();
       if (!current) return;
       const id = session.shift();
-      if (!correct) session.unshift(id);
+      if (!correct) session.splice(Math.min(3, session.length), 0, id);
       revealed = false;
       renderStudy();
+      toast(correct ? 'Correct ✓' : 'Wrong – this card will come back shortly.');
     }
 
     function handleDeckSelect() {
