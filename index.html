@@ -440,6 +440,8 @@
     let view = 'study';
     let deck = 'main';
     let session = [];
+    let wrongIds = [];
+    let rightIds = [];
     let revealed = false;
     let topic = 'all';
     let toastTimer;
@@ -469,6 +471,8 @@
     function save() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
       session = activeCards().map((card) => card.id);
+      wrongIds = [];
+      rightIds = [];
       revealed = false;
       render();
     }
@@ -499,6 +503,8 @@
 
     function resetSession() {
       session = activeCards().map((card) => card.id);
+      wrongIds = [];
+      rightIds = [];
       revealed = false;
       renderStudy();
     }
@@ -1000,10 +1006,17 @@
       const current = currentCard();
       if (!current) return;
       const id = session.shift();
-      if (!correct) session.splice(Math.min(3, session.length), 0, id);
+      (correct ? rightIds : wrongIds).push(id);
       revealed = false;
+      if (!session.length) {
+        session = [...wrongIds, ...rightIds];
+        wrongIds = [];
+        rightIds = [];
+        toast('Stack done – wrong cards come first in the next round.');
+      } else {
+        toast(correct ? 'Correct ✓' : 'Wrong ✕');
+      }
       renderStudy();
-      toast(correct ? 'Correct ✓' : 'Wrong – this card will come back shortly.');
     }
 
     function handleDeckSelect() {
